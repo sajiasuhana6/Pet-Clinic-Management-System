@@ -103,3 +103,5 @@ if (petTable) {
     cell.colSpan = 3;
     cell.innerText = "No pets available";
 }
+
+const recordForm = document.querySelector("form");

@@ -1,24 +1,32 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Viewing Owners</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
 
-<h2>Owner List</h2>
+    <h2>Owner List</h2>
 
-<table border="1" align="center" id="ownerTable">
-    <tr>
-        <th>Name</th>
-        <th>Phone</th>
-        <th>Actions</th>
-    </tr>
-</table>
+    <table border="1" align="center" id="ownerTable">
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Actions <button>Edit</button>
+            <button>Delete</button> </th>
+        </tr>
+    </table>
 
-<p id="message"></p>
+    <input type="text" placeholder="Search Owner">
+    <button>Search</button>
+    <br><br>
 
-<script src="js/app.js"></script>
+    <p id="message"></p>
+
+    <script src="js/app.js"></script>
 
 </body>
+
 </html>
