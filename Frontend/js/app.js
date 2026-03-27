@@ -82,3 +82,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+
+const ownerTable = document.getElementById("ownerTable");
+
+if (ownerTable) {
+    // Example empty state
+    const row = ownerTable.insertRow();
+    const cell = row.insertCell(0);
+
+    cell.colSpan = 3;
+    cell.innerText = "No owners available";
+}
+
+const petTable = document.getElementById("petTable");
+
+if (petTable) {
+    const row = petTable.insertRow();
+    const cell = row.insertCell(0);
+
+    cell.colSpan = 3;
+    cell.innerText = "No pets available";
+}
