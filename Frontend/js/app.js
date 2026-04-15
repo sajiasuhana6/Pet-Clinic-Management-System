@@ -67,9 +67,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const date = document.getElementById("date").value;
 
             apiFacade("http://localhost:3000/addAppointment", {
-                ownerName : ownerName,
-                petName : petName,
-                date : date
+                ownerName: ownerName,
+                petName: petName,
+                date: date
             })
                 .then(() => notify(message, "Appointment scheduled! Set reminder."))
                 .catch(() => notify(message, "Error scheduling appointment"));
