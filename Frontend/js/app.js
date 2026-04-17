@@ -1,4 +1,3 @@
-// FACTORY DESIGN PATTERN
 // Product/Base Class
 class ClinicData {
     constructor() {}
@@ -30,7 +29,7 @@ class Appointment extends ClinicData {
     }
 }
 
-// Abstract Creator / Factory
+// Abstract Creator
 class Creator {
     factoryMethod() {
         throw new Error("factoryMethod() must be overridden");
@@ -41,7 +40,7 @@ class Creator {
     }
 }
 
-// Concrete Creators / Factories
+// Concrete Creators
 class OwnerCreator extends Creator {
     factoryMethod(name, phone) {
         return new Owner(name, phone);
