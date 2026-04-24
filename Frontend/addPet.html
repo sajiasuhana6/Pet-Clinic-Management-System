@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <link rel="stylesheet" href="css/style.css">
-        <title> Adding Pet </title>
-    </head>
 
-    <body>
-        
-        <h2> Add Pet </h2>
+<head>
+    <title> Adding Pet </title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
 
-        <form id="PetForm">
-            <input type="text" id="NamePet" placeholder="Pet Name" required><br><br>
-            <input type="text" id="PetType" placeholder="Pet Type" required><br><br>
-            <button type="submit">Add Pet</button>
-        </form>
+<body>
 
-        <p id="message"></p>
+    <h2> Add Pet </h2>
 
-        <script src="js/app.js"></script>
+    <form id="PetForm">
+        <input type="number" id="petId" placeholder="Pet ID" required><br><br>
+        <input type="text" id="NamePet" placeholder="Pet Name" required><br><br>
+        <input type="text" id="PetType" placeholder="Pet Type" required><br><br>
+        <select id="ownerId" required>
+            <option value="">Select Owner</option>
+        </select>
+        <button type="submit">Add Pet</button>
+    </form>
 
-    </body>
+    <p id="message"></p>
+
+    <script src="js/app.js"></script>
+
+</body>
+
 </html>

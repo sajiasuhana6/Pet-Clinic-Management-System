@@ -1,9 +1,8 @@
-// Product/Base Class
+//FACTORY PATTERN
 class ClinicData {
     constructor() {}
 }
 
-// Concrete Products
 class Owner extends ClinicData {
     constructor(name, phone) {
         super();
@@ -29,7 +28,7 @@ class Appointment extends ClinicData {
     }
 }
 
-// Abstract Creator
+
 class Creator {
     factoryMethod() {
         throw new Error("factoryMethod() must be overridden");
@@ -40,7 +39,6 @@ class Creator {
     }
 }
 
-// Concrete Creators
 class OwnerCreator extends Creator {
     factoryMethod(name, phone) {
         return new Owner(name, phone);
@@ -59,125 +57,185 @@ class AppointmentCreator extends Creator {
     }
 }
 
-// FACADE PATTERN
+//FACADE PATTERN
 function apiFacade(url, data) {
     return fetch(url, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
-    })
-        .then(res => res.json());
+    }).then(res => res.json());
 }
 
+
+// OBSERVER PATTERN
+function notify(element, msg) {
+    if (element) {
+        element.innerText = msg;
+    }
+}
+
+//MAIN 
 document.addEventListener("DOMContentLoaded", () => {
 
+    //OWNER FORM
     const OwnerForm = document.getElementById("OwnerForm");
-    const PetForm = document.getElementById("PetForm");
-    const AppointmentForm = document.getElementById("AppointmentForm");
 
-    // OWNER FORM
     if (OwnerForm) {
         OwnerForm.addEventListener("submit", (e) => {
             e.preventDefault();
 
             const message = document.getElementById("message");
 
-            const name = document.getElementById("NameOwner").value;
-            const phone = document.getElementById("PhoneOwner").value;
-            
-     // Factory Pattern used here
             const creator = new OwnerCreator();
-            const ownerData = creator.createData(name, phone);
+            const ownerData = creator.createData(
+                document.getElementById("NameOwner").value,
+                document.getElementById("PhoneOwner").value
+            );
 
-            apiFacade("http://localhost:3000/addOwner",ownerData)
-        
-                .then(() => notify(message, "Owner added successfully!"))
+            apiFacade("http://localhost:3000/addOwner", ownerData)
+                .then(() => {
+                    notify(message, "Owner added successfully!");
+                    OwnerForm.reset();
+                })
                 .catch(() => notify(message, "Error adding owner"));
         });
     }
 
-    // PET FORM
+    //PET FORM
+    const PetForm = document.getElementById("PetForm");
+
     if (PetForm) {
         PetForm.addEventListener("submit", (e) => {
             e.preventDefault();
 
             const message = document.getElementById("message");
 
-            const petName = document.getElementById("NamePet").value;
-            const petType = document.getElementById("PetType").value;
-            
-     // Factory Pattern used here
             const creator = new PetCreator();
-            const petData = creator.createData(petName, petType);
+            const petData = creator.createData(
+                document.getElementById("NamePet").value,
+                document.getElementById("PetType").value
+            );
 
-            apiFacade("http://localhost:3000/addPet",petData)
-                
-                .then(() => notify(message, "Pet added successfully!"))
+            apiFacade("http://localhost:3000/addPet", petData)
+                .then(() => {
+                    notify(message, "Pet added successfully!");
+                    PetForm.reset();
+                })
                 .catch(() => notify(message, "Error adding pet"));
         });
     }
 
-
     //APPOINTMENT FORM
+    const AppointmentForm = document.getElementById("AppointmentForm");
+
     if (AppointmentForm) {
         AppointmentForm.addEventListener("submit", (e) => {
             e.preventDefault();
 
             const message = document.getElementById("message");
 
-            const ownerName = document.getElementById("NameOwner").value;
-            const petName = document.getElementById("NamePet").value;
-            const date = document.getElementById("date").value;
-            
-     // Factory Pattern used here
             const creator = new AppointmentCreator();
-            const appointmentData = creator.createData(ownerName, petName, date);
+            const appointmentData = creator.createData(
+                document.getElementById("NameOwner").value,
+                document.getElementById("NamePet").value,
+                document.getElementById("date").value
+            );
 
-            apiFacade("http://localhost:3000/addAppointment",appointmentData)
-            
-                .then(() => notify(message, "Appointment scheduled! Set reminder."))
+            apiFacade("http://localhost:3000/addAppointment", appointmentData)
+                .then(() => {
+                    notify(message, "Appointment scheduled!");
+                    AppointmentForm.reset();
+                })
                 .catch(() => notify(message, "Error scheduling appointment"));
         });
     }
 
-    // OBSERVER PATTERN
-    function notify(element, msg) {
-        if(element){
-        element.innerText = msg;
+    //MEDICAL FORM
+    const MedicalForm = document.getElementById("MedicalForm");
+
+    if (MedicalForm) {
+        MedicalForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const message = document.getElementById("message");
+
+            const medicalData = {
+                visitId: document.getElementById("visitId").value,
+                petId: document.getElementById("petId").value,
+                diagnosis: document.getElementById("diagnosis").value,
+                treatment: document.getElementById("treatment").value
+            };
+
+            apiFacade("http://localhost:3000/addMedicalRecord", medicalData)
+                .then(() => {
+                    notify(message, "Medical record added successfully!");
+                    MedicalForm.reset();
+                })
+                .catch(() => notify(message, "Error adding medical record"));
+        });
     }
+
+    //OWNER TABLE EMPTY STATE
+    const ownerTable = document.getElementById("ownerTable");
+
+    if (ownerTable && ownerTable.rows.length === 1) {
+        const row = ownerTable.insertRow();
+        const cell = row.insertCell(0);
+        cell.colSpan = 3;
+        cell.innerText = "No owners available";
     }
+
+    //PET TABLE EMPTY STATE
+    const petTable = document.getElementById("petTable");
+
+    if (petTable && petTable.rows.length === 1) {
+        const row = petTable.insertRow();
+        const cell = row.insertCell(0);
+        cell.colSpan = 3;
+        cell.innerText = "No pets available";
+    }
+
+    //APPOINTMENT TABLE EMPTY STATE
+    const appointmentTable = document.getElementById("appointmentTable");
+
+    if (appointmentTable && appointmentTable.rows.length === 1) {
+        const row = appointmentTable.insertRow();
+        const cell = row.insertCell(0);
+        cell.colSpan = 4;
+        cell.innerText = "No appointments available";
+    }
+
+    //MEDICAL RECORD TABLE
+    const recordTable = document.getElementById("recordTable");
+
+    if (recordTable) {
+        fetch("http://localhost:3000/getMedicalRecords")
+            .then(res => res.json())
+            .then(data => {
+
+                if (!data || data.length === 0) {
+                    const row = recordTable.insertRow();
+                    const cell = row.insertCell(0);
+                    cell.colSpan = 4;
+                    cell.innerText = "No medical records available";
+                    return;
+                }
+
+                data.forEach(record => {
+                    let row = recordTable.insertRow();
+
+                    row.insertCell(0).innerText = record.visitId;
+                    row.insertCell(1).innerText = record.petId;
+                    row.insertCell(2).innerText = record.diagnosis;
+                    row.insertCell(3).innerText = record.treatment;
+                });
+            })
+            .catch(() => {
+                const row = recordTable.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 4;
+                cell.innerText = "Error loading medical records";
+            });
+    }
+
 });
-
-const ownerTable = document.getElementById("ownerTable");
-
-if (ownerTable) {
-    // Example empty state
-    const row = ownerTable.insertRow();
-    const cell = row.insertCell(0);
-
-    cell.colSpan = 3;
-    cell.innerText = "No owners available";
-}
-
-const petTable = document.getElementById("petTable");
-
-if (petTable) {
-    const row = petTable.insertRow();
-    const cell = row.insertCell(0);
-
-    cell.colSpan = 3;
-    cell.innerText = "No pets available";
-}
-const appointmentTable = document.getElementById("appointmentTable");
-
-if (appointmentTable) {
-    const row = appointmentTable.insertRow();
-    const cell = row.insertCell(0);
-
-    cell.colSpan = 4;
-    cell.innerText = "No appointments available";
-}
-
-const recordForm = document.querySelector("form");
