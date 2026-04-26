@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule Appointment — PetClinic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-brand"><span class="paw">🐾</span> PetClinic</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Dashboard</a>
+    <a href="viewOwners.html" class="nav-link">Owners</a>
+    <a href="viewPets.html" class="nav-link">Pets</a>
+    <a href="viewAppointments.html" class="nav-link active">Appointments</a>
+    <a href="viewInvoices.html" class="nav-link">Invoices</a>
+    <a href="medicalRecords.html" class="nav-link">Medical Records</a>
+  </div>
+</nav>
+<div class="page">
+  <a href="viewAppointments.html" class="back-link">← Back to Appointments</a>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Schedule <span>Appointment</span></h1>
+      <p class="page-sub">Book a clinic visit for a pet</p>
+    </div>
+  </div>
+  <div class="card card-sm">
+    <div id="alertArea"></div>
+    <form id="AppointmentForm">
+      <div class="form-group">
+        <label class="form-label">Pet *</label>
+        <select class="form-select" id="apptPet" required></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input class="form-input" type="date" id="apptDate" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time *</label>
+          <input class="form-input" type="time" id="apptTime" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="apptStatus">
+          <option value="scheduled">Scheduled</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:0.5rem">
+        <button class="btn btn-primary btn-full" type="submit" id="submitBtn">Schedule Appointment</button>
+        <a href="viewAppointments.html" class="btn btn-ghost" style="min-width:100px;justify-content:center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="js/app.js"></script>
+<script>
+// Set default date to today
+document.getElementById('apptDate').value = new Date().toISOString().split('T')[0];
+populateSelect('apptPet', 'pets', 'id', 'name');
+
+document.getElementById('AppointmentForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Scheduling...';
+  try {
+    await apiFetch(`${API}/appointments`, {
+      method: 'POST',
+      body: {
+        pet_id: Number(document.getElementById('apptPet').value),
+        date: document.getElementById('apptDate').value,
+        time: document.getElementById('apptTime').value,
+        status: document.getElementById('apptStatus').value,
+      }
+    });
+    showAlert('alertArea', 'Appointment scheduled successfully!', 'success');
+    document.getElementById('AppointmentForm').reset();
+    document.getElementById('apptDate').value = new Date().toISOString().split('T')[0];
+    populateSelect('apptPet', 'pets', 'id', 'name');
+    setTimeout(() => location.href = 'viewAppointments.html', 1200);
+  } catch(err) {
+    showAlert('alertArea', 'Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = 'Schedule Appointment';
+  }
+});
+</script>
+</body>
+</html>

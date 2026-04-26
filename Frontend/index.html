@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PetClinic — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-brand"><span class="paw">🐾</span> PetClinic</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active">Dashboard</a>
+    <a href="viewOwners.html" class="nav-link">Owners</a>
+    <a href="viewPets.html" class="nav-link">Pets</a>
+    <a href="viewAppointments.html" class="nav-link">Appointments</a>
+    <a href="viewInvoices.html" class="nav-link">Invoices</a>
+    <a href="medicalRecords.html" class="nav-link">Medical Records</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard <span>Overview</span></h1>
+      <p class="page-sub">Welcome to Pet Clinic Management System</p>
+    </div>
+  </div>
+
+  <div id="alertArea"></div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">👤</div>
+      <div class="stat-num" id="statOwners">—</div>
+      <div class="stat-label">Total Owners</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🐶</div>
+      <div class="stat-num" id="statPets">—</div>
+      <div class="stat-label">Registered Pets</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-num" id="statAppts">—</div>
+      <div class="stat-label">Appointments</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🧾</div>
+      <div class="stat-num" id="statInvoices">—</div>
+      <div class="stat-label">Invoices</div>
+    </div>
+  </div>
+
+  <h2 style="font-size:1rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">Quick Actions</h2>
+  <div class="quick-actions">
+    <a href="addOwner.html" class="quick-btn"><span class="icon">👤</span>Add Owner</a>
+    <a href="addPet.html" class="quick-btn"><span class="icon">🐾</span>Add Pet</a>
+    <a href="addAppointment.html" class="quick-btn"><span class="icon">📅</span>Schedule Appointment</a>
+    <a href="addInvoice.html" class="quick-btn"><span class="icon">🧾</span>Create Invoice</a>
+    <a href="medicalRecords.html" class="quick-btn"><span class="icon">📋</span>Medical Records</a>
+    <a href="viewAppointments.html" class="quick-btn"><span class="icon">🔍</span>View All</a>
+  </div>
+
+  <h2 style="font-size:1rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:1rem;">Recent Appointments</h2>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Pet</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="recentAppts">
+        <tr><td colspan="5"><div class="empty-state"><div class="loader"></div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+const API = 'http://localhost:3000/api';
+
+async function loadStats() {
+  try {
+    const [owners, pets, appts, invoices] = await Promise.all([
+      fetch(`${API}/owners`).then(r=>r.json()),
+      fetch(`${API}/pets`).then(r=>r.json()),
+      fetch(`${API}/appointments`).then(r=>r.json()),
+      fetch(`${API}/invoices`).then(r=>r.json()),
+    ]);
+    document.getElementById('statOwners').textContent = owners.data?.length ?? 0;
+    document.getElementById('statPets').textContent = pets.data?.length ?? 0;
+    document.getElementById('statAppts').textContent = appts.data?.length ?? 0;
+    document.getElementById('statInvoices').textContent = invoices.data?.length ?? 0;
+
+    const tbody = document.getElementById('recentAppts');
+    const recent = (appts.data || []).slice(0,5);
+    if (!recent.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">No appointments yet</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = recent.map(a => `
+      <tr>
+        <td>${a.pet_name || a.pet_id || '—'}</td>
+        <td>${a.date || '—'}</td>
+        <td>${a.time || '—'}</td>
+        <td>${statusBadge(a.status)}</td>
+        <td class="td-actions">
+          <a href="viewAppointments.html" class="btn btn-info btn-sm">View</a>
+        </td>
+      </tr>`).join('');
+  } catch(e) {
+    showAlert('alertArea', 'Could not reach the server. Make sure the backend is running on port 3000.', 'error');
+    document.getElementById('recentAppts').innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Server unavailable</div></div></td></tr>`;
+  }
+}
+
+function statusBadge(s) {
+  const map = { scheduled:'info', cancelled:'danger', completed:'success', pending:'warning' };
+  const cls = map[s?.toLowerCase()] || 'muted';
+  return `<span class="badge badge-${cls}">${s||'—'}</span>`;
+}
+
+loadStats();
+</script>
+</body>
+</html>

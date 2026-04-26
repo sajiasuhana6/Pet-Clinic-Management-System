@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owners — PetClinic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-brand"><span class="paw">🐾</span> PetClinic</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Dashboard</a>
+    <a href="viewOwners.html" class="nav-link active">Owners</a>
+    <a href="viewPets.html" class="nav-link">Pets</a>
+    <a href="viewAppointments.html" class="nav-link">Appointments</a>
+    <a href="viewInvoices.html" class="nav-link">Invoices</a>
+    <a href="medicalRecords.html" class="nav-link">Medical Records</a>
+  </div>
+</nav>
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Pet <span>Owners</span></h1>
+      <p class="page-sub">Manage all registered owners</p>
+    </div>
+    <a href="addOwner.html" class="btn btn-primary">+ Add Owner</a>
+  </div>
+  <div id="alertArea"></div>
+  <div class="search-bar">
+    <input class="form-input" type="text" id="searchInput" placeholder="Search by name…">
+    <button class="btn btn-ghost" onclick="searchOwners()">Search</button>
+    <button class="btn btn-ghost" onclick="loadOwners()">Reset</button>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Name</th><th>Phone</th><th>Email</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="ownerTableBody">
+        <tr><td colspan="5"><div class="empty-state"><div class="loader"></div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Owner</h3>
+      <button class="modal-close" onclick="closeModal('editModal')">×</button>
+    </div>
+    <div id="editAlertArea"></div>
+    <div class="form-group">
+      <label class="form-label">Full Name *</label>
+      <input class="form-input" type="text" id="editName">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone *</label>
+      <input class="form-input" type="tel" id="editPhone">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" type="email" id="editEmail">
+    </div>
+    <input type="hidden" id="editId">
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" id="editSaveBtn" onclick="saveOwner()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+async function loadOwners() {
+  const tbody = document.getElementById('ownerTableBody');
+  tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
+  document.getElementById('searchInput').value = '';
+  try {
+    const data = await apiFetch(`${API}/owners`);
+    renderOwners(data.data || []);
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Could not load owners — is the server running?</div></div></td></tr>`;
+  }
+}
+
+function renderOwners(owners) {
+  const tbody = document.getElementById('ownerTableBody');
+  if (!owners.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">No owners found</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = owners.map((o, i) => `
+    <tr>
+      <td style="color:var(--text-muted);font-family:var(--mono)">${i+1}</td>
+      <td><strong>${escHtml(o.name)}</strong></td>
+      <td>${escHtml(o.phone || '—')}</td>
+      <td>${escHtml(o.email || '—')}</td>
+      <td class="td-actions">
+        <button class="btn btn-warning btn-sm" onclick="openEdit(${o.id})">✏ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteOwner(${o.id})">🗑 Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function searchOwners() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) { loadOwners(); return; }
+  const tbody = document.getElementById('ownerTableBody');
+  tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
+  try {
+    const data = await apiFetch(`${API}/owners/search?name=${encodeURIComponent(q)}`);
+    renderOwners(data.data || []);
+  } catch(e) {
+    showAlert('alertArea', 'Search failed: ' + e.message, 'error');
+  }
+}
+
+async function openEdit(id) {
+  try {
+    const data = await apiFetch(`${API}/owners/${id}`);
+    const o = data.data;
+    document.getElementById('editId').value = o.id;
+    document.getElementById('editName').value = o.name || '';
+    document.getElementById('editPhone').value = o.phone || '';
+    document.getElementById('editEmail').value = o.email || '';
+    document.getElementById('editAlertArea').innerHTML = '';
+    openModal('editModal');
+  } catch(e) {
+    showAlert('alertArea', 'Could not load owner: ' + e.message, 'error');
+  }
+}
+
+async function saveOwner() {
+  const id = document.getElementById('editId').value;
+  const btn = document.getElementById('editSaveBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+  try {
+    await apiFetch(`${API}/owners/${id}`, {
+      method: 'PUT',
+      body: {
+        name: document.getElementById('editName').value.trim(),
+        phone: document.getElementById('editPhone').value.trim(),
+        email: document.getElementById('editEmail').value.trim() || null,
+      }
+    });
+    closeModal('editModal');
+    showAlert('alertArea', 'Owner updated successfully!', 'success');
+    loadOwners();
+  } catch(e) {
+    showAlert('editAlertArea', 'Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = 'Save Changes';
+  }
+}
+
+async function deleteOwner(id) {
+  if (!await confirmDelete('Delete this owner and all their pets?')) return;
+  try {
+    await apiFetch(`${API}/owners/${id}`, { method: 'DELETE' });
+    showAlert('alertArea', 'Owner deleted.', 'success');
+    loadOwners();
+  } catch(e) {
+    showAlert('alertArea', 'Error: ' + e.message, 'error');
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => { if(e.key==='Enter') searchOwners(); });
+loadOwners();
+</script>
+</body>
+</html>

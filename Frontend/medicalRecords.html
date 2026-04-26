@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Records — PetClinic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-brand"><span class="paw">🐾</span> PetClinic</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Dashboard</a>
+    <a href="viewOwners.html" class="nav-link">Owners</a>
+    <a href="viewPets.html" class="nav-link">Pets</a>
+    <a href="viewAppointments.html" class="nav-link">Appointments</a>
+    <a href="viewInvoices.html" class="nav-link">Invoices</a>
+    <a href="medicalRecords.html" class="nav-link active">Medical Records</a>
+  </div>
+</nav>
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Medical <span>Records</span></h1>
+      <p class="page-sub">View and add diagnosis and treatment notes</p>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:1.5rem;align-items:start">
+    <!-- Add Record Form -->
+    <div class="card">
+      <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:1.2rem;color:var(--accent)">Add Medical Record</h3>
+      <div id="formAlertArea"></div>
+      <form id="MedicalForm">
+        <div class="form-group">
+          <label class="form-label">Appointment *</label>
+          <select class="form-select" id="recAppt" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Visit Date</label>
+          <input class="form-input" type="date" id="recDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Diagnosis *</label>
+          <input class="form-input" type="text" id="recDiagnosis" placeholder="e.g. Fever, Skin infection…" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Treatment Notes</label>
+          <textarea class="form-input" id="recNotes" placeholder="Treatment administered, medications, follow-up…" rows="3" style="resize:vertical"></textarea>
+        </div>
+        <button class="btn btn-primary btn-full" type="submit" id="submitBtn">Save Record</button>
+      </form>
+    </div>
+
+    <!-- Records View -->
+    <div>
+      <div class="search-bar" style="margin-bottom:1rem">
+        <select class="form-select" id="filterPet" style="max-width:220px">
+          <option value="">All Pets</option>
+        </select>
+        <button class="btn btn-ghost" onclick="loadRecords()">Load Records</button>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Pet</th><th>Diagnosis</th><th>Notes</th></tr>
+          </thead>
+          <tbody id="recordsTableBody">
+            <tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Select a pet or load all records</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="recordAlertArea"></div>
+    </div>
+  </div>
+</div>
+<script src="js/app.js"></script>
+<script>
+document.getElementById('recDate').value = new Date().toISOString().split('T')[0];
+
+async function init() {
+  // Load appointments for form
+  const sel = document.getElementById('recAppt');
+  try {
+    const data = await apiFetch(`${API}/appointments`);
+    const appts = data.data || [];
+    sel.innerHTML = `<option value="">— Select Appointment —</option>` +
+      appts.map(a => `<option value="${a.id}">#${a.id} — ${a.pet_name || 'Pet '+a.pet_id} on ${a.date}</option>`).join('');
+  } catch { sel.innerHTML = `<option>Error loading</option>`; }
+
+  // Populate pet filter
+  try {
+    const data = await apiFetch(`${API}/pets`);
+    const filterSel = document.getElementById('filterPet');
+    (data.data || []).forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id; opt.textContent = p.name;
+      filterSel.appendChild(opt);
+    });
+  } catch {}
+}
+
+async function loadRecords() {
+  const tbody = document.getElementById('recordsTableBody');
+  tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
+  const petId = document.getElementById('filterPet').value;
+
+  try {
+    // Medical records go through appointments — load all appointments and show their data
+    const url = petId ? `${API}/appointments/pet/${petId}` : `${API}/appointments`;
+    const data = await apiFetch(url);
+    const appts = data.data || [];
+    if (!appts.length) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No records found</div></div></td></tr>`;
+      return;
+    }
+    // Show appointment data as records (visit info)
+    tbody.innerHTML = appts.map(a => `
+      <tr>
+        <td>${a.date || '—'}</td>
+        <td>${esc(a.pet_name || 'Pet #'+a.pet_id)}</td>
+        <td>${a.diagnosis ? esc(a.diagnosis) : '<span style="color:var(--text-dim)">—</span>'}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${a.treatment_notes ? esc(a.treatment_notes) : '<span style="color:var(--text-dim)">—</span>'}</td>
+      </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Server error</div></div></td></tr>`;
+  }
+}
+
+document.getElementById('MedicalForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const appt_id = document.getElementById('recAppt').value;
+  if (!appt_id) { showAlert('formAlertArea','Select an appointment','error'); return; }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Saving...';
+  try {
+    // Update appointment with diagnosis/treatment (via PUT to appointment)
+    await apiFetch(`${API}/appointments/${appt_id}`, {
+      method: 'PUT',
+      body: {
+        diagnosis: document.getElementById('recDiagnosis').value.trim(),
+        treatment_notes: document.getElementById('recNotes').value.trim(),
+        visit_date: document.getElementById('recDate').value,
+        status: 'completed',
+      }
+    });
+    showAlert('formAlertArea','Medical record saved!','success');
+    document.getElementById('MedicalForm').reset();
+    document.getElementById('recDate').value = new Date().toISOString().split('T')[0];
+    loadRecords();
+  } catch(err) {
+    showAlert('formAlertArea','Error: ' + err.message,'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = 'Save Record';
+  }
+});
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+init();
+loadRecords();
+</script>
+</body>
+</html>

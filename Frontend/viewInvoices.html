@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoices — PetClinic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-brand"><span class="paw">🐾</span> PetClinic</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Dashboard</a>
+    <a href="viewOwners.html" class="nav-link">Owners</a>
+    <a href="viewPets.html" class="nav-link">Pets</a>
+    <a href="viewAppointments.html" class="nav-link">Appointments</a>
+    <a href="viewInvoices.html" class="nav-link active">Invoices</a>
+    <a href="medicalRecords.html" class="nav-link">Medical Records</a>
+  </div>
+</nav>
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Billing <span>Invoices</span></h1>
+      <p class="page-sub">Track all service invoices and payments</p>
+    </div>
+    <a href="addInvoice.html" class="btn btn-primary">+ New Invoice</a>
+  </div>
+  <div id="alertArea"></div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Invoice ID</th><th>Appointment</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="invoiceTableBody">
+        <tr><td colspan="7"><div class="empty-state"><div class="loader"></div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script src="js/app.js"></script>
+<script>
+async function loadInvoices() {
+  const tbody = document.getElementById('invoiceTableBody');
+  tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="loader"></div></div></td></tr>`;
+  try {
+    const data = await apiFetch(`${API}/invoices`);
+    const invoices = data.data || [];
+    if (!invoices.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-text">No invoices yet</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = invoices.map((inv, i) => `
+      <tr>
+        <td style="color:var(--text-muted);font-family:var(--mono)">${i+1}</td>
+        <td style="font-family:var(--mono);color:var(--accent)">#${inv.id}</td>
+        <td>Appt #${inv.appt_id}</td>
+        <td style="font-family:var(--mono);font-weight:600">${fmtMoney(inv.total_amount || 0)}</td>
+        <td>${statusBadge(inv.payment_status || 'unpaid')}</td>
+        <td>${inv.created_date ? inv.created_date.split('T')[0] : '—'}</td>
+        <td class="td-actions">
+          ${inv.payment_status !== 'paid' ? `<button class="btn btn-info btn-sm" onclick="markPaid(${inv.id})">✓ Mark Paid</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="deleteInvoice(${inv.id})">🗑 Delete</button>
+        </td>
+      </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Server unavailable</div></div></td></tr>`;
+  }
+}
+
+async function markPaid(id) {
+  try {
+    await apiFetch(`${API}/invoices/${id}/pay`, { method: 'PATCH' });
+    showAlert('alertArea','Invoice marked as paid!','success');
+    loadInvoices();
+  } catch(e) {
+    showAlert('alertArea','Error: ' + e.message,'error');
+  }
+}
+
+async function deleteInvoice(id) {
+  if (!await confirmDelete('Delete this invoice?')) return;
+  try {
+    await apiFetch(`${API}/invoices/${id}`, { method: 'DELETE' });
+    showAlert('alertArea','Invoice deleted.','success');
+    loadInvoices();
+  } catch(e) {
+    showAlert('alertArea','Error: ' + e.message,'error');
+  }
+}
+
+loadInvoices();
+</script>
+</body>
+</html>

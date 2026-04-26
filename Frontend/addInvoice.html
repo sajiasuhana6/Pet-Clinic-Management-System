@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Invoice — PetClinic</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-brand"><span class="paw">🐾</span> PetClinic</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Dashboard</a>
+    <a href="viewOwners.html" class="nav-link">Owners</a>
+    <a href="viewPets.html" class="nav-link">Pets</a>
+    <a href="viewAppointments.html" class="nav-link">Appointments</a>
+    <a href="viewInvoices.html" class="nav-link active">Invoices</a>
+    <a href="medicalRecords.html" class="nav-link">Medical Records</a>
+  </div>
+</nav>
+<div class="page">
+  <a href="viewInvoices.html" class="back-link">← Back to Invoices</a>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Create <span>Invoice</span></h1>
+      <p class="page-sub">Generate a billing invoice for a clinic visit</p>
+    </div>
+  </div>
+  <div class="card card-sm">
+    <div id="alertArea"></div>
+    <form id="InvoiceForm">
+      <div class="form-group">
+        <label class="form-label">Appointment *</label>
+        <select class="form-select" id="invoiceAppt" required></select>
+      </div>
+      <div id="servicesList"></div>
+      <button type="button" class="btn btn-ghost" id="addServiceBtn" onclick="addServiceRow()" style="margin-bottom:0.8rem;width:100%">+ Add Service Item</button>
+      <div class="service-total">
+        <span>Total Amount</span>
+        <span class="amount" id="totalDisplay">৳ 0.00</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:1rem">
+        <button class="btn btn-primary btn-full" type="submit" id="submitBtn">Generate Invoice</button>
+        <a href="viewInvoices.html" class="btn btn-ghost" style="min-width:100px;justify-content:center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="js/app.js"></script>
+<script>
+// Load appointments into select, pre-select if appt_id in URL
+async function loadAppts() {
+  const sel = document.getElementById('invoiceAppt');
+  try {
+    const data = await apiFetch(`${API}/appointments`);
+    const appts = (data.data || []).filter(a => a.status !== 'cancelled');
+    sel.innerHTML = `<option value="">— Select Appointment —</option>` +
+      appts.map(a => `<option value="${a.id}">#${a.id} — ${a.pet_name || 'Pet '+a.pet_id} on ${a.date}</option>`).join('');
+    // Pre-select from URL
+    const params = new URLSearchParams(location.search);
+    const preId = params.get('appt_id');
+    if (preId) sel.value = preId;
+  } catch(e) {
+    sel.innerHTML = `<option>Error loading appointments</option>`;
+  }
+}
+
+function addServiceRow(name='', price='') {
+  const div = document.createElement('div');
+  div.className = 'service-item';
+  div.innerHTML = `
+    <input class="form-input svc-name" type="text" placeholder="Service name (e.g. Vaccination)" value="${name}">
+    <input class="form-input svc-price service-price" type="number" placeholder="Price" min="0" step="0.01" value="${price}" oninput="recalc()">
+    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove();recalc()">×</button>`;
+  document.getElementById('servicesList').appendChild(div);
+}
+
+function recalc() {
+  const total = Array.from(document.querySelectorAll('.svc-price'))
+    .reduce((s, el) => s + (parseFloat(el.value) || 0), 0);
+  document.getElementById('totalDisplay').textContent = fmtMoney(total);
+}
+
+document.getElementById('InvoiceForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const appt_id = document.getElementById('invoiceAppt').value;
+  if (!appt_id) { showAlert('alertArea','Please select an appointment','error'); return; }
+
+  const services = Array.from(document.querySelectorAll('.service-item')).map(row => ({
+    name: row.querySelector('.svc-name').value.trim(),
+    price: parseFloat(row.querySelector('.svc-price').value) || 0,
+  })).filter(s => s.name);
+
+  if (!services.length) { showAlert('alertArea','Add at least one service item','error'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Generating...';
+  try {
+    await apiFetch(`${API}/invoices`, {
+      method: 'POST',
+      body: { appt_id: Number(appt_id), services }
+    });
+    showAlert('alertArea','Invoice generated!','success');
+    setTimeout(() => location.href = 'viewInvoices.html', 1200);
+  } catch(err) {
+    showAlert('alertArea','Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = 'Generate Invoice';
+  }
+});
+
+// Init
+loadAppts();
+addServiceRow('Consultation', '500');
+</script>
+</body>
+</html>
