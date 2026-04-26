@@ -87,10 +87,10 @@ async function loadDashboard() {
       apiFetch(`${API}/invoices`)
     ]);
 
-    document.getElementById("totalOwners").textContent = owners.data.length;
-    document.getElementById("totalPets").textContent = pets.data.length;
-    document.getElementById("totalAppointments").textContent = appointments.data.length;
-    document.getElementById("totalInvoices").textContent = invoices.data.length;
+    document.getElementById("statOwners").textContent = owners.data.length;
+    document.getElementById("statPets").textContent = pets.data.length;
+    document.getElementById("statAppts").textContent = appointments.data.length;
+    document.getElementById("statInvoices").textContent = invoices.data.length;
 
   } catch (err) {
     console.error("Dashboard load failed:", err);
