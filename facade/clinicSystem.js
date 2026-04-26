@@ -43,9 +43,6 @@ class ClinicSystem {
     return ClinicSystem.#instance;
   }
 
-  // ============================================================
-  // OWNER MANAGEMENT
-  // ============================================================
 
   async addOwner(data) {
     const owner = this.#factory.createOwner(data);
@@ -92,10 +89,6 @@ class ClinicSystem {
     return { message: `Owner ${id} deleted successfully` };
   }
 
-  // ============================================================
-  // PET MANAGEMENT
-  // ============================================================
-
   async addPet(data) {
     // owner must exist before registering a pet
     await this.#assertExists("owner", data.owner_id);
@@ -135,9 +128,7 @@ class ClinicSystem {
     return { message: `Pet ${id} deleted successfully` };
   }
 
-  // ============================================================
-  // APPOINTMENT SCHEDULING
-  // ============================================================
+
 
   async scheduleAppointment(data) {
     // pet must exist before scheduling
@@ -188,23 +179,20 @@ class ClinicSystem {
     return updated;
   }
 
-  // ============================================================
-  // BILLING AND INVOICE MANAGEMENT
-  // ============================================================
 
-  async generateInvoice(appt_id, services) {
+  async generateInvoice(appointment_id, services) {
     // appointment must exist
-    await this.#assertExists("appointment", appt_id);
+    await this.#assertExists("appointment", appointment_id);
 
     // one invoice per appointment
-    const existing = await this.#invoiceRepo.findByAppointment(appt_id);
+    const existing = await this.#invoiceRepo.findByAppointment(appointment_id);
     if (existing.length > 0) {
-      throw new Error(`Invoice already exists for appointment ${appt_id}`);
+      throw new Error(`Invoice already exists for appointment ${appointment_id}`);
     }
 
     // build invoice step by step using Builder
     this.#invoiceBuilder.reset();
-    this.#invoiceBuilder.setAppointment(appt_id);
+    this.#invoiceBuilder.setAppointment(appointment_id);
 
     for (const { serviceName, price } of services) {
       this.#invoiceBuilder.addServiceItem(serviceName, price);
@@ -228,9 +216,9 @@ class ClinicSystem {
     return invoice;
   }
 
-  async getInvoiceByAppointment(appt_id) {
-    await this.#assertExists("appointment", appt_id);
-    return await this.#invoiceRepo.findByAppointment(appt_id);
+  async getInvoiceByAppointment(appointment_id) {
+    await this.#assertExists("appointment", appointment_id);
+    return await this.#invoiceRepo.findByAppointment(appointment_id);
   }
 
   async markInvoicePaid(id) {
@@ -248,9 +236,6 @@ class ClinicSystem {
     return { message: `Invoice ${id} deleted successfully` };
   }
 
-  // ============================================================
-  // PRIVATE HELPERS
-  // ============================================================
 
   async #assertExists(type, id) {
     const repoMap = {

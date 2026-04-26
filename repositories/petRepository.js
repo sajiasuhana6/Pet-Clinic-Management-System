@@ -13,21 +13,27 @@ class PetRepository extends IStorageStrategy {
   save(data) {
     return this.#strategy.save("pet", data);
   }
+
   findById(id) {
     return this.#strategy.findById("pet", id);
   }
+
   findAll() {
     return this.#strategy.findAll("pet");
   }
+
   findByField(field, val) {
     return this.#strategy.findByField("pet", field, val);
   }
+
   update(id, data) {
     return this.#strategy.update("pet", id, data);
   }
+
   delete(id) {
     return this.#strategy.delete("pet", id);
   }
+
   exists(id) {
     return this.#strategy.exists("pet", id);
   }

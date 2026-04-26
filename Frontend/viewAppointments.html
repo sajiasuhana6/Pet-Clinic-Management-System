@@ -112,7 +112,7 @@ function renderAppts(appts) {
       <td class="td-actions">
         <button class="btn btn-warning btn-sm" onclick="openEdit(${a.id})">✏ Edit</button>
         <button class="btn btn-danger btn-sm" onclick="cancelAppt(${a.id})">✕ Cancel</button>
-        <a href="addInvoice.html?appt_id=${a.id}" class="btn btn-info btn-sm">🧾 Invoice</a>
+        <a href="addInvoice.html?appointment_id=${a.id}" class="btn btn-info btn-sm">🧾 Invoice</a>
       </td>
     </tr>`).join('');
 }

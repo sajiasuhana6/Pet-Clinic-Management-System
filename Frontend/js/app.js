@@ -1,4 +1,4 @@
-// ── Shared utilities ──────────────────────────────────────────
+//Shared utilities 
 const API = 'http://localhost:3000/api';
 
 // Shared nav active-link highlighter
@@ -37,13 +37,19 @@ function showAlert(containerId, message, type = 'info') {
 async function populateSelect(selectId, endpoint, valueField, labelField) {
   const sel = document.getElementById(selectId);
   if (!sel) return;
+
   try {
-    const data = await apiFetch(`${API}/${endpoint}`);
-    const items = data.data || [];
+    const res = await apiFetch(`${API}/${endpoint}`);
+
+    // FIX: handle multiple response formats
+    const items = res.data || res || [];
+
     sel.innerHTML = `<option value="">— Select —</option>` +
       items.map(i => `<option value="${i[valueField]}">${i[labelField]}</option>`).join('');
+
   } catch (e) {
-    sel.innerHTML = `<option value="">Error loading</option>`;
+    console.error(e);
+    sel.innerHTML = `<option value="">Error loading owners</option>`;
   }
 }
 
@@ -62,7 +68,7 @@ function fmtMoney(n) {
 
 // Status badge HTML
 function statusBadge(s) {
-  const map = { scheduled:'info', cancelled:'danger', completed:'success', pending:'warning', paid:'success', unpaid:'warning' };
+  const map = { scheduled: 'info', cancelled: 'danger', completed: 'success', pending: 'warning', paid: 'success', unpaid: 'warning' };
   const cls = map[s?.toLowerCase()] || 'muted';
   return `<span class="badge badge-${cls}">${s || '—'}</span>`;
 }
@@ -71,3 +77,24 @@ function statusBadge(s) {
 async function confirmDelete(msg) {
   return confirm(msg || 'Are you sure you want to delete this record?');
 }
+
+async function loadDashboard() {
+  try {
+    const [owners, pets, appointments, invoices] = await Promise.all([
+      apiFetch(`${API}/owners`),
+      apiFetch(`${API}/pets`),
+      apiFetch(`${API}/appointments`),
+      apiFetch(`${API}/invoices`)
+    ]);
+
+    document.getElementById("totalOwners").textContent = owners.data.length;
+    document.getElementById("totalPets").textContent = pets.data.length;
+    document.getElementById("totalAppointments").textContent = appointments.data.length;
+    document.getElementById("totalInvoices").textContent = invoices.data.length;
+
+  } catch (err) {
+    console.error("Dashboard load failed:", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadDashboard);

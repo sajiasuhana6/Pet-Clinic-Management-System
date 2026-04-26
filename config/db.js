@@ -56,58 +56,54 @@ class DatabaseManager {
 
   initTables() {
     return new Promise((resolve, reject) => {
-      this.#db.exec(
-        `
-        CREATE TABLE IF NOT EXISTS owners (
-          owner_id    INTEGER PRIMARY KEY AUTOINCREMENT,
-          name        TEXT    NOT NULL,
-          phone       TEXT    NOT NULL,
-          email       TEXT    NOT NULL UNIQUE
-        );
-
-        CREATE TABLE IF NOT EXISTS pets (
-          pet_id      INTEGER PRIMARY KEY AUTOINCREMENT,
-          owner_id    INTEGER NOT NULL,
-          name        TEXT    NOT NULL,
-          species     TEXT    NOT NULL,
-          age         INTEGER NOT NULL,
-          FOREIGN KEY (owner_id) REFERENCES owners(owner_id) ON DELETE CASCADE
-        );
-
-        CREATE TABLE IF NOT EXISTS appointments (
-          appt_id     INTEGER PRIMARY KEY AUTOINCREMENT,
-          pet_id      INTEGER NOT NULL,
-          date        TEXT    NOT NULL,
-          time        TEXT    NOT NULL,
-          status      TEXT    NOT NULL DEFAULT 'scheduled',
-          FOREIGN KEY (pet_id) REFERENCES pets(pet_id) ON DELETE CASCADE
-        );
-
-        CREATE TABLE IF NOT EXISTS invoices (
-          invoice_id      INTEGER PRIMARY KEY AUTOINCREMENT,
-          appt_id         INTEGER NOT NULL,
-          total_amount    REAL    NOT NULL DEFAULT 0,
-          payment_status  TEXT    NOT NULL DEFAULT 'unpaid',
-          created_date    TEXT    NOT NULL,
-          FOREIGN KEY (appt_id) REFERENCES appointments(appt_id) ON DELETE CASCADE
-        );
-
-        CREATE TABLE IF NOT EXISTS medical_visits (
-          visit_id          INTEGER PRIMARY KEY AUTOINCREMENT,
-          appt_id           INTEGER NOT NULL,
-          visit_date        TEXT    NOT NULL,
-          diagnosis         TEXT,
-          treatment_notes   TEXT,
-          FOREIGN KEY (appt_id) REFERENCES appointments(appt_id) ON DELETE CASCADE
-        );
-      `,
-        (err) => {
-          if (err) reject(new Error(`Table init failed: ${err.message}`));
-          else resolve();
-        },
+      this.#db.exec(`
+      CREATE TABLE IF NOT EXISTS owners (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE
       );
+
+      CREATE TABLE IF NOT EXISTS pets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        species TEXT NOT NULL,
+        age INTEGER,
+        FOREIGN KEY (owner_id) REFERENCES owners(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS appointments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pet_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        time TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'scheduled',
+        FOREIGN KEY (pet_id) REFERENCES pets(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS invoices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        appointment_id INTEGER NOT NULL,
+        total_amount REAL NOT NULL DEFAULT 0,
+        payment_status TEXT NOT NULL DEFAULT 'unpaid',
+        created_date TEXT NOT NULL,
+        FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS medical_visits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        appointment_id INTEGER NOT NULL,
+        visit_date TEXT NOT NULL,
+        diagnosis TEXT,
+        treatment_notes TEXT,
+        FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE
+      );
+    `, (err) => {
+        if (err) reject(new Error(`Table init failed: ${err.message}`));
+        else resolve();
+      });
     });
   }
 }
-
 export default DatabaseManager;

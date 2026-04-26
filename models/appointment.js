@@ -1,7 +1,7 @@
 // models/Appointment.js
 class Appointment {
-  constructor({ appt_id = null, pet_id, date, time, status = "scheduled" }) {
-    this.appt_id = appt_id;
+  constructor({ appointment_id = null, pet_id, date, time, status = "scheduled" }) {
+    this.appointment_id = appointment_id;
     this.pet_id = pet_id;
     this.date = date;
     this.time = time;
@@ -9,7 +9,7 @@ class Appointment {
   }
 
   getApptId() {
-    return this.appt_id;
+    return this.appointment_id;
   }
   updateStatus(s) {
     this.status = s;
@@ -17,7 +17,7 @@ class Appointment {
 
   toMap() {
     return {
-      appt_id: this.appt_id,
+      appointment_id: this.appointment_id,
       pet_id: this.pet_id,
       date: this.date,
       time: this.time,

@@ -2,13 +2,13 @@
 class Invoice {
   constructor({
     invoice_id = null,
-    appt_id,
+    appointment_id,
     total_amount = 0,
     payment_status = "unpaid",
     created_date,
   }) {
     this.invoice_id = invoice_id;
-    this.appt_id = appt_id;
+    this.appointment_id = appointment_id;
     this.total_amount = total_amount;
     this.payment_status = payment_status;
     this.created_date = created_date || new Date().toISOString().split("T")[0];
@@ -24,7 +24,7 @@ class Invoice {
   toMap() {
     return {
       invoice_id: this.invoice_id,
-      appt_id: this.appt_id,
+      appointment_id: this.appointment_id,
       total_amount: this.total_amount,
       payment_status: this.payment_status,
       created_date: this.created_date,

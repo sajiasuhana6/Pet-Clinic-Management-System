@@ -129,13 +129,13 @@ async function loadRecords() {
 
 document.getElementById('MedicalForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const appt_id = document.getElementById('recAppt').value;
-  if (!appt_id) { showAlert('formAlertArea','Select an appointment','error'); return; }
+  const appointment_id = document.getElementById('recAppt').value;
+  if (!appointment_id) { showAlert('formAlertArea','Select an appointment','error'); return; }
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Saving...';
   try {
     // Update appointment with diagnosis/treatment (via PUT to appointment)
-    await apiFetch(`${API}/appointments/${appt_id}`, {
+    await apiFetch(`${API}/appointments/${appointment_id}`, {
       method: 'PUT',
       body: {
         diagnosis: document.getElementById('recDiagnosis').value.trim(),

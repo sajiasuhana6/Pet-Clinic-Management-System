@@ -33,8 +33,8 @@ class InvoiceRepository extends IStorageStrategy {
   }
 
   // invoice-specific
-  findByAppointment(appt_id) {
-    return this.#strategy.findByField("invoice", "appt_id", appt_id);
+  findByAppointment(appointment_id) {
+    return this.#strategy.findByField("invoice", "appointment_id", appointment_id);
   }
   findByPaymentStatus(status) {
     return this.#strategy.findByField("invoice", "payment_status", status);

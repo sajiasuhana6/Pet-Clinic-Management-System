@@ -21,7 +21,7 @@ class EntityFactory {
   }
 
   createInvoice(data) {
-    this.#validateFields(data, ["appt_id"]);
+    this.#validateFields(data, ["appointment_id"]);
     return new Invoice(data);
   }
 

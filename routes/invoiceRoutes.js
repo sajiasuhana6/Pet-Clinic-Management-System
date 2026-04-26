@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.post("/", generateInvoice);
 router.get("/", getAllInvoices);
-router.get("/appointment/:appt_id", getInvoiceByAppointment);
+router.get("/appointment/:appointment_id", getInvoiceByAppointment);
 router.get("/:id", getInvoiceById);
 router.patch("/:id/pay", markInvoicePaid);
 router.delete("/:id", deleteInvoice);

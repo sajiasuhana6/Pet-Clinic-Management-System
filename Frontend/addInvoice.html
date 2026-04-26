@@ -48,7 +48,7 @@
 </div>
 <script src="js/app.js"></script>
 <script>
-// Load appointments into select, pre-select if appt_id in URL
+// Load appointments into select, pre-select if appointment_id in URL
 async function loadAppts() {
   const sel = document.getElementById('invoiceAppt');
   try {
@@ -58,7 +58,7 @@ async function loadAppts() {
       appts.map(a => `<option value="${a.id}">#${a.id} — ${a.pet_name || 'Pet '+a.pet_id} on ${a.date}</option>`).join('');
     // Pre-select from URL
     const params = new URLSearchParams(location.search);
-    const preId = params.get('appt_id');
+    const preId = params.get('appointment_id');
     if (preId) sel.value = preId;
   } catch(e) {
     sel.innerHTML = `<option>Error loading appointments</option>`;
@@ -83,8 +83,8 @@ function recalc() {
 
 document.getElementById('InvoiceForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const appt_id = document.getElementById('invoiceAppt').value;
-  if (!appt_id) { showAlert('alertArea','Please select an appointment','error'); return; }
+  const appointment_id = document.getElementById('invoiceAppt').value;
+  if (!appointment_id) { showAlert('alertArea','Please select an appointment','error'); return; }
 
   const services = Array.from(document.querySelectorAll('.service-item')).map(row => ({
     name: row.querySelector('.svc-name').value.trim(),
@@ -98,7 +98,7 @@ document.getElementById('InvoiceForm').addEventListener('submit', async e => {
   try {
     await apiFetch(`${API}/invoices`, {
       method: 'POST',
-      body: { appt_id: Number(appt_id), services }
+      body: { appointment_id: Number(appointment_id), services }
     });
     showAlert('alertArea','Invoice generated!','success');
     setTimeout(() => location.href = 'viewInvoices.html', 1200);

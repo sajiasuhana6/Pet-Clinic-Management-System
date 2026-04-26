@@ -54,7 +54,7 @@ async function loadInvoices() {
       <tr>
         <td style="color:var(--text-muted);font-family:var(--mono)">${i+1}</td>
         <td style="font-family:var(--mono);color:var(--accent)">#${inv.id}</td>
-        <td>Appt #${inv.appt_id}</td>
+        <td>Appt #${inv.appointment_id}</td>
         <td style="font-family:var(--mono);font-weight:600">${fmtMoney(inv.total_amount || 0)}</td>
         <td>${statusBadge(inv.payment_status || 'unpaid')}</td>
         <td>${inv.created_date ? inv.created_date.split('T')[0] : '—'}</td>

@@ -5,8 +5,8 @@ const clinic = ClinicSystem.getInstance();
 
 export const generateInvoice = async (req, res, next) => {
   try {
-    const { appt_id, services } = req.body;
-    const invoice = await clinic.generateInvoice(appt_id, services);
+    const { appointment_id, services } = req.body;
+    const invoice = await clinic.generateInvoice(appointment_id, services);
     res.status(201).json({ success: true, data: invoice });
   } catch (err) {
     next(err);
@@ -34,7 +34,7 @@ export const getInvoiceById = async (req, res, next) => {
 export const getInvoiceByAppointment = async (req, res, next) => {
   try {
     const invoice = await clinic.getInvoiceByAppointment(
-      Number(req.params.appt_id),
+      Number(req.params.appointment_id),
     );
     res.status(200).json({ success: true, data: invoice });
   } catch (err) {

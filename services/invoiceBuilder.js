@@ -2,21 +2,21 @@
 import Invoice from "../models/invoice.js";
 
 class InvoiceBuilder {
-  #appt_id;
+  #appointment_id;
   #services;
   #payment_status;
   #created_date;
 
   constructor() {
-    this.#appt_id = null;
+    this.#appointment_id = null;
     this.#services = [];
     this.#payment_status = "unpaid";
     this.#created_date = new Date().toISOString().split("T")[0];
   }
 
-  setAppointment(appt_id) {
-    if (!appt_id) throw new Error("appt_id is required to build an invoice");
-    this.#appt_id = appt_id;
+  setAppointment(appointment_id) {
+    if (!appointment_id) throw new Error("appointment_id is required to build an invoice");
+    this.#appointment_id = appointment_id;
     return this;
   }
 
@@ -48,7 +48,7 @@ class InvoiceBuilder {
   }
 
   build() {
-    if (!this.#appt_id) {
+    if (!this.#appointment_id) {
       throw new Error("Cannot build invoice: appointment ID is not set");
     }
     if (this.#services.length === 0) {
@@ -58,7 +58,7 @@ class InvoiceBuilder {
     const total = this.calculateTotal();
 
     return new Invoice({
-      appt_id: this.#appt_id,
+      appointment_id: this.#appointment_id,
       total_amount: total,
       payment_status: this.#payment_status,
       created_date: this.#created_date,
@@ -67,7 +67,7 @@ class InvoiceBuilder {
 
   // reset builder for reuse
   reset() {
-    this.#appt_id = null;
+    this.#appointment_id = null;
     this.#services = [];
     this.#payment_status = "unpaid";
     this.#created_date = new Date().toISOString().split("T")[0];
@@ -77,7 +77,7 @@ class InvoiceBuilder {
   // read-only snapshot of current state — useful for debugging
   getSummary() {
     return {
-      appt_id: this.#appt_id,
+      appointment_id: this.#appointment_id,
       services: [...this.#services],
       total_amount: this.calculateTotal(),
       payment_status: this.#payment_status,

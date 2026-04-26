@@ -11,10 +11,10 @@ class SQLiteStorageStrategy {
   // map entity type to table name and primary key
   #getMeta(type) {
     const map = {
-      owner: { table: "owners", pk: "owner_id" },
-      pet: { table: "pets", pk: "pet_id" },
-      appointment: { table: "appointments", pk: "appt_id" },
-      invoice: { table: "invoices", pk: "invoice_id" },
+      owner: { table: "owners", pk: "id" },
+      pet: { table: "pets", pk: "id" },
+      appointment: { table: "appointments", pk: "id" },
+      invoice: { table: "invoices", pk: "id" },
     };
 
     const meta = map[type];
